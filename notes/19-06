@@ -1,0 +1,13 @@
+ODM- Object Document mapper  -- Mongoose(JS)
+
+3 things
+1.map a model to collection
+2.map an object to decuments
+3.map an object's property to a document's field
+
+ORM- Object Relational mapper-- hybernate,django ORM,ActiveRecord, Eloquence,Sequalize
+
+3 things
+1.map class to a table
+2.map object to a row
+3.map object's property to a column name

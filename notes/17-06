@@ -1,0 +1,15 @@
+SQL                NoSQ                JavaScript
+
+
+Table              Collection          Array
+Row                Document            Object
+Column             Field               Property
+
+
+
+
+
+CREATED  - POST
+READ     - GET
+UPDATE   - PUT
+DESTROY  - DELETE

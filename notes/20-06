@@ -1,0 +1,4 @@
+1.Create a new Model called category
+2.the schema must contain name of type string
+3.validations- required, minlength-2,maxlength-24
+create a model and have it exported

@@ -1,0 +1,265 @@
+notes-app
+    /app 
+        /controllers
+            /notesController.js 
+            /categoriesController.js 
+            /usersController.js 
+        /models
+            /note.js 
+            /category.js 
+            /user.js 
+    /config
+        /database.js
+        /routes.js 
+
+-----------
+index.js 
+-----------
+const express = require('express') // npm install express
+const mongoose = require('./config/database')
+const router = require('./config/routes')
+const app = express() 
+const port = 3005 
+
+app.use(express.json())
+app.use('/', router)
+
+
+app.listen(port, () => {
+    console.log('listening on port', port)
+})
+
+-----------
+database.js 
+-----------
+const mongoose = require('mongoose') // npm install mongoose
+// db configuration
+mongoose.Promise = global.Promise
+mongoose.connect('mongodb://localhost:27017/notes-app-april', { useNewUrlParser: true })
+    .then(() => {
+        console.log('connected to db')
+    })
+    .catch((err) => {
+        console.log('error connecting to db', err)
+    })
+
+module.exports = mongoose
+
+
+-----------
+/app/models/note.js 
+-----------
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema
+
+const noteSchema = new Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    body: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now()
+    }
+})
+
+const Note = mongoose.model('Note', noteSchema)
+
+module.exports = Note 
+
+-----------
+/config/routes
+-----------
+const express = require('express')
+const router = express.Router()
+const notesController = require('../app/controllers/notesController')
+
+router.get('/notes', notesController.list)
+router.get('/notes/:id', notesController.show)
+router.post('/notes', notesController.create)
+router.put('/notes/:id', notesController.update)
+router.delete('/notes/:id', notesController.destroy)
+
+
+module.exports = router 
+
+
+
+-----------
+/app/controllers/notesController.js 
+-----------
+const Note = require('../models/note')
+
+module.exports.list = (req, res) => {
+    Note.find()
+        .then((notes) => {
+            res.json(notes)
+        })
+}
+
+module.exports.show = (req, res) => {
+    const id = req.params.id
+    Note.findById(id)
+        .then((note) => {
+            if (note) {
+                res.json(note)
+            } else {
+                res.status('404').json({})
+            }
+        })
+        .catch(err => {
+            res.json(err)
+        })
+}
+
+module.exports.create = (req, res) => {
+    const data = req.body
+    const note = new Note({ title: data.title, body: data.body })
+    note.save()
+        .then((note) => {
+            res.json(note)
+        })
+        .catch((err) => {
+            res.json(err)
+        })
+}
+
+module.exports.update = (req, res) => {
+    const id = req.params.id
+    const body = req.body
+    Note.findByIdAndUpdate(id, { $set: body }, { new: true, runValidators: true })
+        .then(note => {
+            if (note) {
+                res.json(note)
+            } else {
+                res.status('404').json({})
+            }
+        })
+        .catch(err => {
+            res.json(err)
+        })
+}
+
+module.exports.destroy = (req, res) => {
+    const id = req.params.id
+    Note.findByIdAndDelete(id)
+        .then(note => {
+            if (note) {
+                res.json(note)
+            } else {
+                res.status('404').json({})
+            }
+        })
+        .catch(err => {
+            res.json(err)
+        })
+}
+
+-----------
+/app/models/category.js 
+-----------
+
+const mongoose = require('mongoose')
+const Schema = mongoose.Schema 
+
+const categorySchema = new Schema({
+    name: {
+        type: String, 
+        required: true, 
+        minlength: 2, 
+        maxlength: 24
+    }
+})
+
+const Category = mongoose.model('Category', categorySchema) 
+
+module.exports = Category 
+
+
+-----------
+/app/controllers/categoriesController.js 
+-----------
+
+const Category = require('../models/category')
+
+module.exports.list = (req, res) => {
+    Category.find()
+        .then(categories => res.json(categories))
+        .catch(err => res.json(err))
+}
+
+module.exports.create = (req, res) => {
+    const body = req.body 
+    const category = new Category(body)
+    category.save()
+        .then(category => res.json({ notice: 'successfully created a category', category})) 
+        .catch(err => res.json(err))
+}
+
+module.exports.show = (req, res) => {
+    const id = req.params.id 
+    Category.findById(id)
+        .then(category => {
+            if(category) {
+                res.json(category) 
+            } else {
+                res.json({})
+            }
+        })
+}
+
+module.exports.update = (req, res) => {
+    const id = req.params.id 
+    const body = req.body 
+    Category.findByIdAndUpdate(id, { $set: body}, { new: true, runValidators: true})
+        .then(category => {
+            if(category) {
+                res.json(category)
+            } else {
+                res.json({})
+            }
+        })
+}
+
+module.exports.destroy = (req, res) => {
+    const id = req.params.id 
+    Category.findByIdAndDelete(id)  
+        .then(category => {
+            if(category) {
+                res.json(category) 
+            } else {
+                res.json({})
+            }
+        }) 
+}
+
+-----------
+/config/routes.js 
+-----------
+
+const categoriesController = require('../app/controllers/categoriesController')
+
+router.get('/categories', categoriesController.list)
+router.post('/categories', categoriesController.create)
+router.get('/categories/:id', categoriesController.show)
+router.put('/categories/:id', categoriesController.update)
+router.delete('/categories/:id', categoriesController.destroy)
+
+-----------
+/app/models/note
+-----------
+
+add new field 
+
+ category: {
+        type: Schema.Types.ObjectId,
+        ref: 'Category'
+    }
+
+and change create action in notes
+    const data = req.body
+    const note = new Note(data)
